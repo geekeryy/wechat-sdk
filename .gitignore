@@ -1,4 +1,6 @@
 .idea
 
 # Folders
-/src/
+access_token.json
+jsapi_ticket.json
+src/*
