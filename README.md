@@ -8,5 +8,6 @@
 sdk := jssdk.NewJssdk("your appId", "your appSecret",nil)
 token, e := sdk.GetAccessToken()
 token2, e2 := sdk.GetJsapiTicket()
+signPackage, e3 := sdk.GetSignPackage("http://www.jiangyang.me")
 ```
 

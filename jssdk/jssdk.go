@@ -1,9 +1,12 @@
 package jssdk
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -56,6 +59,51 @@ func NewJssdk(appId, appSecret string, s Storage) *Jssdk {
 	}
 	return w
 
+}
+
+// sha1加密
+func (w *Jssdk) sha1(data []byte) string {
+	sha1 := sha1.New()
+	sha1.Write(data)
+	return hex.EncodeToString(sha1.Sum([]byte(nil)))
+}
+
+// 获取签名内容
+func (w *Jssdk) GetSignPackage(url string) (string,error) {
+	if _,err:=w.GetJsapiTicket();err!=nil{
+		return "",err
+	}
+
+	timestamp := time.Now().Unix()
+	nonceStr := w.createNonceStr(16)
+
+	// 这里参数的顺序要按照 key 值 ASCII 码升序排序
+	str := fmt.Sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s",w.jsspiTicket.Jsapi_ticket,nonceStr,timestamp,url)
+
+	signature := w.sha1([]byte(str))
+
+	signPackage :=make(map[string]string)
+	signPackage["appId"]=w.appId
+	signPackage["nonceStr"]=nonceStr
+	signPackage["timestamp"]=fmt.Sprintf("%d",timestamp)
+	signPackage["url"]=url
+	signPackage["signature"]=signature
+	signPackage["rawString"]=str
+
+	bytes, e := json.Marshal(signPackage)
+	return string(bytes),e
+}
+
+// 创建随机字符串
+func (w *Jssdk) createNonceStr(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	bytes := []byte(str)
+	result := []byte{}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
+	}
+	return string(result)
 }
 
 // 获取AccessToken
