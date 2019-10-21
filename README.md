@@ -1,6 +1,6 @@
 # 微信SDK合集
 
-### 微信jssdk-go版本#
+### 微信jssdk-go版本
 
 > 可自定义token存储方式，实现jssdk.Storage接口即可
 > 默认在当前目录以json文件形式存储
