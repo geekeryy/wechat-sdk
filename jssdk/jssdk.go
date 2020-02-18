@@ -69,29 +69,29 @@ func (w *Jssdk) sha1(data []byte) string {
 }
 
 // 获取签名内容
-func (w *Jssdk) GetSignPackage(url string) (string,error) {
-	if _,err:=w.GetJsapiTicket();err!=nil{
-		return "",err
+func (w *Jssdk) GetSignPackage(url string) (map[string]string,error) {
+	if _, err := w.GetJsapiTicket(); err != nil {
+		return nil, err
 	}
 
 	timestamp := time.Now().Unix()
 	nonceStr := w.createNonceStr(16)
 
 	// 这里参数的顺序要按照 key 值 ASCII 码升序排序
-	str := fmt.Sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s",w.jsspiTicket.Jsapi_ticket,nonceStr,timestamp,url)
+	str := fmt.Sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s", w.jsspiTicket.Jsapi_ticket, nonceStr, timestamp, url)
 
 	signature := w.sha1([]byte(str))
 
-	signPackage :=make(map[string]string)
-	signPackage["appId"]=w.appId
-	signPackage["nonceStr"]=nonceStr
-	signPackage["timestamp"]=fmt.Sprintf("%d",timestamp)
-	signPackage["url"]=url
-	signPackage["signature"]=signature
-	signPackage["rawString"]=str
+	signPackage := make(map[string]string)
+	signPackage["appId"] = w.appId
+	signPackage["nonceStr"] = nonceStr
+	signPackage["timestamp"] = fmt.Sprintf("%d", timestamp)
+	signPackage["url"] = url
+	signPackage["signature"] = signature
+	signPackage["rawString"] = str
 
-	bytes, e := json.Marshal(signPackage)
-	return string(bytes),e
+	//bytes, e := json.Marshal(signPackage)
+	return signPackage,nil
 }
 
 // 创建随机字符串
@@ -170,8 +170,8 @@ func (w *Jssdk) GetJsapiTicket() (*jsapiTicket, error) {
 	}
 
 	// 获取AccessToken
-	if _, e := w.GetAccessToken(); e!=nil && w.accessToken==nil{
-		return nil,e
+	if _, e := w.GetAccessToken(); e != nil || w.accessToken == nil {
+		return nil, e
 	}
 
 	// 向微信服务器请求JsapiTicket
